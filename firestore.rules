@@ -1,0 +1,507 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAtelierAdmin() {
+      return isSignedIn() && request.auth.token.email == 'tubisuslu171@gmail.com';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidSavedRecipe(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.sourceType in ['ai', 'community'] &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 60 &&
+             data.difficulty is string && data.difficulty.size() >= 1 && data.difficulty.size() <= 40 &&
+             data.yarnType is string && data.yarnType.size() >= 1 && data.yarnType.size() <= 120 &&
+             data.hookSize is string && data.hookSize.size() >= 1 && data.hookSize.size() <= 60 &&
+             (!('estimatedDuration' in data) || (data.estimatedDuration is string && data.estimatedDuration.size() <= 60)) &&
+             (!('abbreviationsNote' in data) || (data.abbreviationsNote is string && data.abbreviationsNote.size() <= 300)) &&
+             data.steps is list && data.steps.size() >= 1 && data.steps.size() <= 40 &&
+             data.steps[0] is string &&
+             (!('imageKey' in data) || (data.imageKey is string && data.imageKey.size() <= 120)) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 250000)) &&
+             (!('authorName' in data) || (data.authorName is string && data.authorName.size() <= 80)) &&
+             data.isFavorite is bool;
+    }
+
+    function isValidLikedPost(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.postId is string && data.postId.size() > 0 && data.postId.size() <= 128;
+    }
+
+    function isValidCommunityPost(data) {
+      return data.authorId is string && data.authorId.size() > 0 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+             (!('authorPhotoUrl' in data) || (data.authorPhotoUrl is string && data.authorPhotoUrl.size() <= 250000)) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 60 &&
+             data.difficulty is string && data.difficulty.size() >= 1 && data.difficulty.size() <= 40 &&
+             data.yarnType is string && data.yarnType.size() >= 1 && data.yarnType.size() <= 120 &&
+             (!('yarnBrand' in data) || (data.yarnBrand is string && data.yarnBrand.size() <= 120)) &&
+             data.hookSize is string && data.hookSize.size() >= 1 && data.hookSize.size() <= 60 &&
+             (!('recipeNote' in data) || (data.recipeNote is string && data.recipeNote.size() <= 2500)) &&
+             data.steps is list && data.steps.size() <= 40 &&
+             (data.steps.size() == 0 || data.steps[0] is string) &&
+             data.imageKey is string && data.imageKey.size() >= 1 && data.imageKey.size() <= 120 &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 250000)) &&
+             data.likesCount is int && data.likesCount >= 0 &&
+             (!('commentsCount' in data) || (data.commentsCount is int && data.commentsCount >= 0)) &&
+             data.isPublished is bool;
+    }
+
+    function isValidPostComment(data) {
+      return data.postId is string && data.postId.size() > 0 && data.postId.size() <= 128 &&
+             data.authorId is string && data.authorId.size() > 0 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+             (!('authorPhotoUrl' in data) || (data.authorPhotoUrl is string && data.authorPhotoUrl.size() <= 250000)) &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 600 &&
+             data.isPublished is bool;
+    }
+
+    function isValidCommunityMake(data) {
+      return data.postId is string && data.postId.size() > 0 && data.postId.size() <= 128 &&
+             data.authorId is string && data.authorId.size() > 0 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+             (!('authorPhotoUrl' in data) || (data.authorPhotoUrl is string && data.authorPhotoUrl.size() <= 250000)) &&
+             data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 250000 &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 300)) &&
+             data.isPublished is bool;
+    }
+
+    function isValidSocialPost(data) {
+      return data.authorId is string && data.authorId.size() > 0 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+             (!('authorHandle' in data) || (data.authorHandle is string && data.authorHandle.size() <= 80)) &&
+             (!('authorPhotoUrl' in data) || (data.authorPhotoUrl is string && data.authorPhotoUrl.size() <= 250000)) &&
+             data.topic is string && data.topic.size() >= 1 && data.topic.size() <= 60 &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 600 &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 250000)) &&
+             data.likesCount is int && data.likesCount >= 0 &&
+             (!('repliesCount' in data) || (data.repliesCount is int && data.repliesCount >= 0)) &&
+             data.isPublished is bool;
+    }
+
+    function isValidSocialReply(data) {
+      return data.postId is string && data.postId.size() > 0 && data.postId.size() <= 128 &&
+             data.authorId is string && data.authorId.size() > 0 && data.authorId.size() <= 128 &&
+             data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+             (!('authorHandle' in data) || (data.authorHandle is string && data.authorHandle.size() <= 80)) &&
+             (!('authorPhotoUrl' in data) || (data.authorPhotoUrl is string && data.authorPhotoUrl.size() <= 250000)) &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 600 &&
+             data.isPublished is bool;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() > 0 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.username is string && data.username.size() >= 2 && data.username.size() <= 40 &&
+             data.usernameLower is string && data.usernameLower.size() >= 1 && data.usernameLower.size() <= 40 &&
+             (!('bio' in data) || (data.bio is string && data.bio.size() <= 200)) &&
+             (!('specialtyTag' in data) || (data.specialtyTag is string && data.specialtyTag.size() <= 60)) &&
+             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 250000)) &&
+             data.notifyLikes is bool &&
+             data.notifyComments is bool;
+    }
+
+    function isValidAtelierProduct(data) {
+      return data.authorId is string && data.authorId.size() > 0 && data.authorId.size() <= 128 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+             data.subtitle is string && data.subtitle.size() >= 1 && data.subtitle.size() <= 400 &&
+             data.priceFormatted is string && data.priceFormatted.size() >= 1 && data.priceFormatted.size() <= 40 &&
+             data.tag is string && data.tag.size() >= 1 && data.tag.size() <= 40 &&
+             (!('yarnDetail' in data) || (data.yarnDetail is string && data.yarnDetail.size() <= 120)) &&
+             (!('dimensions' in data) || (data.dimensions is string && data.dimensions.size() <= 80)) &&
+             (!('imageKey' in data) || (data.imageKey is string && data.imageKey.size() <= 120)) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 250000)) &&
+             (!('shopierUrl' in data) || (data.shopierUrl is string && data.shopierUrl.size() <= 500)) &&
+             (!('dolapUrl' in data) || (data.dolapUrl is string && data.dolapUrl.size() <= 500)) &&
+             data.isPublished is bool;
+    }
+
+    function isValidAtelierHiddenProduct(data) {
+      return data.productId is string && data.productId.size() > 0 && data.productId.size() <= 128 &&
+             data.hiddenBy is string && data.hiddenBy.size() > 0 && data.hiddenBy.size() <= 128;
+    }
+
+    match /users/{userId}/savedRecipes/{recipeId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(recipeId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(recipeId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'title', 'sourceType', 'category', 'difficulty',
+                         'yarnType', 'hookSize', 'steps', 'isFavorite', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'title', 'sourceType', 'category', 'difficulty',
+                         'yarnType', 'hookSize', 'estimatedDuration', 'abbreviationsNote',
+                         'steps', 'imageKey', 'imageUrl', 'authorName', 'isFavorite',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidSavedRecipe(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(recipeId) &&
+                       isValidSavedRecipe(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['isFavorite', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'category', 'difficulty', 'yarnType', 'hookSize',
+                           'estimatedDuration', 'abbreviationsNote', 'steps', 'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(recipeId);
+    }
+
+    match /users/{userId}/likedPosts/{postId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(postId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(postId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().postId == postId &&
+                       incoming().keys().hasAll(['userId', 'postId', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'postId', 'createdAt']) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       isValidLikedPost(incoming());
+
+      allow update: if false;
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(postId);
+    }
+
+    match /users/{userId}/likedSocialPosts/{postId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(postId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(postId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().postId == postId &&
+                       incoming().keys().hasAll(['userId', 'postId', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'postId', 'createdAt']) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       isValidLikedPost(incoming());
+
+      allow update: if false;
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(postId);
+    }
+
+    match /communityPosts/{postId} {
+      allow get: if isSignedIn() && isValidId(postId) && (existing().isPublished == true || existing().authorId == request.auth.uid);
+      allow list: if isSignedIn() && (existing().isPublished == true || existing().authorId == request.auth.uid);
+
+      allow create: if isSignedIn() &&
+                       isValidId(postId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().likesCount == 0 &&
+                       (!('commentsCount' in incoming()) || incoming().commentsCount == 0) &&
+                       incoming().keys().hasAll([
+                         'authorId', 'authorName', 'title', 'category', 'difficulty',
+                         'yarnType', 'hookSize', 'steps', 'imageKey', 'likesCount',
+                         'isPublished', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'authorId', 'authorName', 'authorPhotoUrl', 'title', 'category',
+                         'difficulty', 'yarnType', 'yarnBrand', 'hookSize', 'recipeNote',
+                         'steps', 'imageKey', 'imageUrl', 'likesCount', 'commentsCount',
+                         'isPublished', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidCommunityPost(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(postId) &&
+                       isValidCommunityPost(incoming()) &&
+                       incoming().authorId == existing().authorId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       (
+                         (
+                           existing().authorId == request.auth.uid &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'title', 'category', 'difficulty', 'yarnType', 'yarnBrand',
+                             'hookSize', 'recipeNote', 'steps', 'isPublished', 'updatedAt'
+                           ])
+                         ) ||
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'updatedAt']) &&
+                           (
+                             incoming().likesCount == existing().likesCount + 1 ||
+                             incoming().likesCount == existing().likesCount - 1
+                           )
+                         ) ||
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['commentsCount', 'updatedAt']) &&
+                           (
+                             (!('commentsCount' in existing()) && incoming().commentsCount == 1) ||
+                             ('commentsCount' in existing() && (
+                               incoming().commentsCount == existing().commentsCount + 1 ||
+                               incoming().commentsCount == existing().commentsCount - 1
+                             ))
+                           )
+                         )
+                       );
+
+      allow delete: if isSignedIn() && isValidId(postId) && existing().authorId == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow get: if isSignedIn() && isValidId(postId) && isValidId(commentId) && (existing().isPublished == true || existing().authorId == request.auth.uid);
+        allow list: if isSignedIn() && (existing().isPublished == true || existing().authorId == request.auth.uid);
+
+        allow create: if isSignedIn() &&
+                         isValidId(postId) &&
+                         isValidId(commentId) &&
+                         incoming().postId == postId &&
+                         incoming().authorId == request.auth.uid &&
+                         incoming().isPublished == true &&
+                         incoming().keys().hasAll([
+                           'postId', 'authorId', 'authorName', 'text', 'isPublished', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'postId', 'authorId', 'authorName', 'authorPhotoUrl', 'text', 'isPublished', 'createdAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         isValidPostComment(incoming());
+
+        allow update: if false;
+
+        allow delete: if isSignedIn() && isValidId(postId) && isValidId(commentId) && existing().authorId == request.auth.uid;
+      }
+
+      match /makes/{makeId} {
+        allow get: if isSignedIn() && isValidId(postId) && isValidId(makeId) && (existing().isPublished == true || existing().authorId == request.auth.uid);
+        allow list: if isSignedIn() && (existing().isPublished == true || existing().authorId == request.auth.uid);
+
+        allow create: if isSignedIn() &&
+                         isValidId(postId) &&
+                         isValidId(makeId) &&
+                         incoming().postId == postId &&
+                         incoming().authorId == request.auth.uid &&
+                         incoming().isPublished == true &&
+                         incoming().keys().hasAll([
+                           'postId', 'authorId', 'authorName', 'imageUrl', 'isPublished', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'postId', 'authorId', 'authorName', 'authorPhotoUrl',
+                           'imageUrl', 'note', 'isPublished', 'createdAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         isValidCommunityMake(incoming());
+
+        allow update: if false;
+
+        allow delete: if isSignedIn() && isValidId(postId) && isValidId(makeId) && existing().authorId == request.auth.uid;
+      }
+    }
+
+    match /socialPosts/{postId} {
+      allow get: if isSignedIn() && isValidId(postId) && (existing().isPublished == true || existing().authorId == request.auth.uid);
+      allow list: if isSignedIn() && (existing().isPublished == true || existing().authorId == request.auth.uid);
+
+      allow create: if isSignedIn() &&
+                       isValidId(postId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().likesCount == 0 &&
+                       (!('repliesCount' in incoming()) || incoming().repliesCount == 0) &&
+                       incoming().isPublished == true &&
+                       incoming().keys().hasAll([
+                         'authorId', 'authorName', 'topic', 'text', 'likesCount',
+                         'isPublished', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'authorId', 'authorName', 'authorHandle', 'authorPhotoUrl',
+                         'topic', 'text', 'imageUrl', 'likesCount', 'repliesCount',
+                         'isPublished', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidSocialPost(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(postId) &&
+                       isValidSocialPost(incoming()) &&
+                       incoming().authorId == existing().authorId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       (
+                         (
+                           existing().authorId == request.auth.uid &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'topic', 'text', 'isPublished', 'updatedAt'
+                           ])
+                         ) ||
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'updatedAt']) &&
+                           (
+                             incoming().likesCount == existing().likesCount + 1 ||
+                             incoming().likesCount == existing().likesCount - 1
+                           )
+                         ) ||
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['repliesCount', 'updatedAt']) &&
+                           (
+                             (!('repliesCount' in existing()) && incoming().repliesCount == 1) ||
+                             ('repliesCount' in existing() && (
+                               incoming().repliesCount == existing().repliesCount + 1 ||
+                               incoming().repliesCount == existing().repliesCount - 1
+                             ))
+                           )
+                         )
+                       );
+
+      allow delete: if isSignedIn() && isValidId(postId) && existing().authorId == request.auth.uid;
+
+      match /replies/{replyId} {
+        allow get: if isSignedIn() && isValidId(postId) && isValidId(replyId) && (existing().isPublished == true || existing().authorId == request.auth.uid);
+        allow list: if isSignedIn() && (existing().isPublished == true || existing().authorId == request.auth.uid);
+
+        allow create: if isSignedIn() &&
+                         isValidId(postId) &&
+                         isValidId(replyId) &&
+                         incoming().postId == postId &&
+                         incoming().authorId == request.auth.uid &&
+                         incoming().isPublished == true &&
+                         incoming().keys().hasAll([
+                           'postId', 'authorId', 'authorName', 'text', 'isPublished', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'postId', 'authorId', 'authorName', 'authorHandle', 'authorPhotoUrl',
+                           'text', 'isPublished', 'createdAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         isValidSocialReply(incoming());
+
+        allow update: if false;
+
+        allow delete: if isSignedIn() && isValidId(postId) && isValidId(replyId) && existing().authorId == request.auth.uid;
+      }
+    }
+
+    match /userProfiles/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn();
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'username', 'usernameLower',
+                         'notifyLikes', 'notifyComments', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'username', 'usernameLower',
+                         'bio', 'specialtyTag', 'photoUrl', 'notifyLikes',
+                         'notifyComments', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'username', 'usernameLower',
+                         'notifyLikes', 'notifyComments', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'username', 'usernameLower',
+                         'bio', 'specialtyTag', 'photoUrl', 'notifyLikes',
+                         'notifyComments', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidUserProfile(incoming());
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+    }
+
+    match /atelierProducts/{productId} {
+      allow get: if isSignedIn() && isValidId(productId) && (existing().isPublished == true || isAtelierAdmin());
+      allow list: if isSignedIn() && (existing().isPublished == true || isAtelierAdmin());
+
+      allow create: if isAtelierAdmin() &&
+                       isValidId(productId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().isPublished == true &&
+                       incoming().keys().hasAll([
+                         'authorId', 'title', 'subtitle', 'priceFormatted',
+                         'tag', 'isPublished', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'authorId', 'title', 'subtitle', 'priceFormatted', 'tag',
+                         'yarnDetail', 'dimensions', 'imageKey', 'imageUrl',
+                         'shopierUrl', 'dolapUrl', 'isPublished', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidAtelierProduct(incoming());
+
+      allow update: if isAtelierAdmin() &&
+                       isValidId(productId) &&
+                       incoming().authorId == existing().authorId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidAtelierProduct(incoming());
+
+      allow delete: if isAtelierAdmin() && isValidId(productId);
+    }
+
+    match /atelierHiddenProducts/{productId} {
+      allow get: if isSignedIn() && isValidId(productId);
+      allow list: if isSignedIn();
+
+      allow create: if isAtelierAdmin() &&
+                       isValidId(productId) &&
+                       incoming().productId == productId &&
+                       incoming().hiddenBy == request.auth.uid &&
+                       incoming().keys().hasAll(['productId', 'hiddenBy', 'createdAt']) &&
+                       incoming().keys().hasOnly(['productId', 'hiddenBy', 'createdAt']) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       isValidAtelierHiddenProduct(incoming());
+
+      allow update: if false;
+
+      allow delete: if isAtelierAdmin() && isValidId(productId);
+    }
+  }
+}

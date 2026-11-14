@@ -1,0 +1,6 @@
+{
+  "name": "İlmekten İşler",
+  "description": "Örgü topluluğu, yapay zeka destekli Türkçe örgü tarifi oluşturucu ve @ilmektenisler atölye vitrini",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

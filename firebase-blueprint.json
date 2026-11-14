@@ -1,0 +1,663 @@
+{
+  "entities": {
+    "SavedRecipe": {
+      "title": "SavedRecipe",
+      "description": "A knitting or crochet pattern saved by the user from AI generation or the community feed.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "title": {
+          "type": "string",
+          "description": "Name of the crochet or knitting pattern."
+        },
+        "sourceType": {
+          "type": "string",
+          "enum": ["ai", "community"],
+          "description": "Whether the recipe came from Gemini AI or the community."
+        },
+        "category": {
+          "type": "string",
+          "description": "Craft category such as Amigurumi, Giyim & Hırka, Çanta, Anahtarlık & Aksesuar."
+        },
+        "difficulty": {
+          "type": "string",
+          "description": "Difficulty level in Turkish."
+        },
+        "yarnType": {
+          "type": "string",
+          "description": "Recommended yarn weight and fiber."
+        },
+        "hookSize": {
+          "type": "string",
+          "description": "Recommended crochet hook or knitting needle size."
+        },
+        "estimatedDuration": {
+          "type": "string",
+          "description": "Estimated completion duration."
+        },
+        "abbreviationsNote": {
+          "type": "string",
+          "description": "Turkish knitting/crochet abbreviations legend (x, v, a, zn)."
+        },
+        "steps": {
+          "type": "array",
+          "description": "Step-by-step pattern instructions."
+        },
+        "imageKey": {
+          "type": "string",
+          "description": "Optional bundled drawable key."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional Firebase Storage download URL or compact encoded preview."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Creator display name or AI label."
+        },
+        "isFavorite": {
+          "type": "boolean",
+          "description": "Whether the user starred this saved recipe."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "sourceType",
+        "category",
+        "difficulty",
+        "yarnType",
+        "hookSize",
+        "steps",
+        "isFavorite",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LikedPost": {
+      "title": "LikedPost",
+      "description": "Tracks which community posts a user has liked.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "postId": {
+          "type": "string",
+          "description": "Identifier of the liked community post."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when liked via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "postId", "createdAt"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "description": "A user-published knitting or crochet creation shared in the Discover community feed.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "Author Firebase Auth UID."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Public craftsperson display name."
+        },
+        "authorPhotoUrl": {
+          "type": "string",
+          "description": "Optional author profile photo URL."
+        },
+        "title": {
+          "type": "string",
+          "description": "Project title."
+        },
+        "category": {
+          "type": "string",
+          "description": "Craft category."
+        },
+        "difficulty": {
+          "type": "string",
+          "description": "Difficulty level."
+        },
+        "yarnType": {
+          "type": "string",
+          "description": "Yarn used for the project."
+        },
+        "yarnBrand": {
+          "type": "string",
+          "description": "Concise yarn brand label."
+        },
+        "hookSize": {
+          "type": "string",
+          "description": "Hook or needle size used."
+        },
+        "recipeNote": {
+          "type": "string",
+          "description": "Optional pattern description or maker note."
+        },
+        "steps": {
+          "type": "array",
+          "description": "Pattern steps shared with the community."
+        },
+        "imageKey": {
+          "type": "string",
+          "description": "Bundled drawable key representing the craft style."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Firebase Storage download URL or compact preview for user-uploaded photo."
+        },
+        "likesCount": {
+          "type": "integer",
+          "description": "Community like count."
+        },
+        "commentsCount": {
+          "type": "integer",
+          "description": "Community comment count."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Visibility flag for community feed queries."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when published via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "authorId",
+        "authorName",
+        "title",
+        "category",
+        "difficulty",
+        "yarnType",
+        "hookSize",
+        "steps",
+        "imageKey",
+        "likesCount",
+        "isPublished",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PostComment": {
+      "title": "PostComment",
+      "description": "A real-time comment or question on a community knitting post.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "description": "Parent community post identifier."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Comment author Firebase Auth UID."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Comment author display name."
+        },
+        "authorPhotoUrl": {
+          "type": "string",
+          "description": "Optional comment author profile photo URL."
+        },
+        "text": {
+          "type": "string",
+          "description": "Comment or question text."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Visibility flag aligned with query filters."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when posted via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "postId",
+        "authorId",
+        "authorName",
+        "text",
+        "isPublished",
+        "createdAt"
+      ]
+    },
+    "LikedSocialPost": {
+      "title": "LikedSocialPost",
+      "description": "Tracks which Twitter-style social feed posts a user has liked.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "postId": {
+          "type": "string",
+          "description": "Identifier of the liked social post."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when liked via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "postId", "createdAt"]
+    },
+    "SocialPost": {
+      "title": "SocialPost",
+      "description": "A Twitter-style short text/photo microblog post in the İlmek Akışı community feed.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "Author Firebase Auth UID."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Public craftsperson display name."
+        },
+        "authorHandle": {
+          "type": "string",
+          "description": "Community handle."
+        },
+        "authorPhotoUrl": {
+          "type": "string",
+          "description": "Optional author profile photo URL."
+        },
+        "topic": {
+          "type": "string",
+          "description": "Discussion topic such as Örgü Günlüğü, Soru Sor, İp Tavsiyesi, Genel Sohbet."
+        },
+        "text": {
+          "type": "string",
+          "description": "Short microblog post content."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional Firebase Storage download URL or compact encoded image."
+        },
+        "likesCount": {
+          "type": "integer",
+          "description": "Social post like count."
+        },
+        "repliesCount": {
+          "type": "integer",
+          "description": "Social post reply count."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Visibility flag aligned with feed queries."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when published via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "authorId",
+        "authorName",
+        "topic",
+        "text",
+        "likesCount",
+        "isPublished",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SocialReply": {
+      "title": "SocialReply",
+      "description": "A real-time reply on a Twitter-style social feed post.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "description": "Parent social post identifier."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Reply author Firebase Auth UID."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Reply author display name."
+        },
+        "authorHandle": {
+          "type": "string",
+          "description": "Reply author handle."
+        },
+        "authorPhotoUrl": {
+          "type": "string",
+          "description": "Optional reply author profile photo URL."
+        },
+        "text": {
+          "type": "string",
+          "description": "Reply content."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Visibility flag aligned with query filters."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when posted via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "postId",
+        "authorId",
+        "authorName",
+        "text",
+        "isPublished",
+        "createdAt"
+      ]
+    },
+    "CommunityMake": {
+      "title": "CommunityMake",
+      "description": "A user-submitted finished version ('Ben de Ördüm!') of a pattern shared in Topluluk Uygulamaları.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "description": "Parent recipe or discover post identifier."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Maker Firebase Auth UID."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Maker display name."
+        },
+        "authorPhotoUrl": {
+          "type": "string",
+          "description": "Optional maker avatar URL."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Uploaded photo URL or compact preview of the finished handmade piece."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional note about yarn, hook size, or experience."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Visibility flag aligned with query filters."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when shared via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "postId",
+        "authorId",
+        "authorName",
+        "imageUrl",
+        "isPublished",
+        "createdAt"
+      ]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Editable user profile details including unique handle, bio, specialty tag, avatar URL, and notification preferences.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Public display name."
+        },
+        "username": {
+          "type": "string",
+          "description": "Unique handle prefixed with @."
+        },
+        "usernameLower": {
+          "type": "string",
+          "description": "Lowercase normalized handle without @ for uniqueness checks."
+        },
+        "bio": {
+          "type": "string",
+          "description": "Short craftsperson bio."
+        },
+        "specialtyTag": {
+          "type": "string",
+          "description": "Favorite hook or specialty badge such as Amigurumi Ustası."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Profile avatar URL or compact encoded image."
+        },
+        "notifyLikes": {
+          "type": "boolean",
+          "description": "Whether like notifications are enabled."
+        },
+        "notifyComments": {
+          "type": "boolean",
+          "description": "Whether comment/reply notifications are enabled."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "username",
+        "usernameLower",
+        "notifyLikes",
+        "notifyComments",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AtelierRemoteProduct": {
+      "title": "AtelierRemoteProduct",
+      "description": "Handmade product managed by the @ilmektenisler atelier admin.",
+      "type": "object",
+      "properties": {
+        "authorId": {
+          "type": "string",
+          "description": "Admin Firebase Auth UID."
+        },
+        "title": {
+          "type": "string",
+          "description": "Product name."
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Short handmade product description."
+        },
+        "priceFormatted": {
+          "type": "string",
+          "description": "Formatted price in TL."
+        },
+        "tag": {
+          "type": "string",
+          "description": "Badge tag such as Hazır Ürün or Özel Tasarım."
+        },
+        "yarnDetail": {
+          "type": "string",
+          "description": "Material / yarn details."
+        },
+        "dimensions": {
+          "type": "string",
+          "description": "Product measurements."
+        },
+        "imageKey": {
+          "type": "string",
+          "description": "Fallback bundled drawable key."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Uploaded photo URL or compact encoded preview."
+        },
+        "shopierUrl": {
+          "type": "string",
+          "description": "External Shopier listing URL."
+        },
+        "dolapUrl": {
+          "type": "string",
+          "description": "External Dolap listing URL."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Visibility flag aligned with catalog queries."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when added."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated."
+        }
+      },
+      "required": [
+        "authorId",
+        "title",
+        "subtitle",
+        "priceFormatted",
+        "tag",
+        "isPublished",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AtelierHiddenProduct": {
+      "title": "AtelierHiddenProduct",
+      "description": "Admin marker indicating a pre-bundled curated atelier item was removed from the storefront.",
+      "type": "object",
+      "properties": {
+        "productId": {
+          "type": "string",
+          "description": "Curated product identifier."
+        },
+        "hiddenBy": {
+          "type": "string",
+          "description": "Admin UID."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when hidden."
+        }
+      },
+      "required": ["productId", "hiddenBy", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/savedRecipes/{recipeId}": {
+      "schema": {
+        "$ref": "#/entities/SavedRecipe"
+      },
+      "description": "User's private saved knitting and crochet patterns."
+    },
+    "/users/{userId}/likedPosts/{postId}": {
+      "schema": {
+        "$ref": "#/entities/LikedPost"
+      },
+      "description": "User's liked community recipe posts."
+    },
+    "/users/{userId}/likedSocialPosts/{postId}": {
+      "schema": {
+        "$ref": "#/entities/LikedSocialPost"
+      },
+      "description": "User's liked Twitter-style social feed posts."
+    },
+    "/communityPosts/{postId}": {
+      "schema": {
+        "$ref": "#/entities/CommunityPost"
+      },
+      "description": "Published community knitting and crochet recipes."
+    },
+    "/communityPosts/{postId}/comments/{commentId}": {
+      "schema": {
+        "$ref": "#/entities/PostComment"
+      },
+      "description": "Real-time comments and Q&A on community recipe posts."
+    },
+    "/communityPosts/{postId}/makes/{makeId}": {
+      "schema": {
+        "$ref": "#/entities/CommunityMake"
+      },
+      "description": "User-submitted 'Ben de Ördüm!' community versions for each recipe."
+    },
+    "/socialPosts/{postId}": {
+      "schema": {
+        "$ref": "#/entities/SocialPost"
+      },
+      "description": "Published Twitter-style microblog posts in İlmek Akışı."
+    },
+    "/socialPosts/{postId}/replies/{replyId}": {
+      "schema": {
+        "$ref": "#/entities/SocialReply"
+      },
+      "description": "Real-time replies on Twitter-style social feed posts."
+    },
+    "/userProfiles/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Public craftsperson profiles and private notification preference toggles."
+    },
+    "/atelierProducts/{productId}": {
+      "schema": {
+        "$ref": "#/entities/AtelierRemoteProduct"
+      },
+      "description": "Dynamic @ilmektenisler atelier showcase items managed by admin."
+    },
+    "/atelierHiddenProducts/{productId}": {
+      "schema": {
+        "$ref": "#/entities/AtelierHiddenProduct"
+      },
+      "description": "Curated atelier items hidden by admin."
+    }
+  }
+}
